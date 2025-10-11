@@ -1,4 +1,4 @@
 Website: https://bonesbroken.com/  
 
-# Particle Network App
-Adds a customizable plexus/particle network source in Streamlabs Desktop.
+# Constellation Source
+Adds a customizable constellation/plexus/particle network source in Streamlabs Desktop.
