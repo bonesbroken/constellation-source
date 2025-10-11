@@ -1,0 +1,156 @@
+<!doctype html>
+<html class="sl-theme-dark" style="height: 100%;">
+  <head>
+    <meta charset="utf-8" />
+    <title>User Settings</title>
+    <script src="https://cdn.streamlabs.com/slobs-platform/lib/streamlabs-platform.min.js"></script>
+
+    <style>
+    * {
+      font-family: var(--sl-font-sans);
+      box-sizing: inherit;
+    }
+
+    html {
+      height: 100%;
+      overflow-x: hidden;
+      overflow-y: visible;
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #0F1219;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #addAppSource, #saveAppSource {
+      box-sizing: border-box;
+    }
+    #appAppSource {
+      flex: 1;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    #group {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    #noiseCanvas {
+      width: 600px;
+      height: 600px;
+    }
+
+    .settings-panel {
+      border-radius: 0.25rem;
+      flex: 1;
+      width: 250px;
+      height: 200px;
+    }
+
+    .setting-group {
+      display: flex;
+      flex-direction: row;
+      gap: 1rem;
+      padding: 0.5rem;
+      align-items: center;
+      box-sizing: border-box;
+
+      & > sl-range {
+        flex: 1 1 50%;
+      }
+
+      & > sl-color-picker {
+        flex: 1 1 50%;
+      }
+
+      & span {
+        color: var(--sl-color-neutral-600);
+        font-size: var(--sl-font-size-medium);
+
+        & sl-icon {
+          padding-right: 0.25rem; 
+        }
+      }
+
+      & span.expand {
+        flex: 1 1 0%;
+      }
+    }
+
+    .color-picker {
+      padding: 0;
+
+      & > sl-color-picker {
+        flex: none;
+      }
+    }
+    
+    sl-range, sl-select {
+      padding: 0.5rem 0;
+
+      &::part(form-control-label) {
+        color: var(--sl-color-neutral-600);
+      }
+    }
+
+    sl-checkbox {
+      display: block;
+      padding: 0.1rem 0.5rem;
+    }
+
+    sl-details {
+      &::part(base) {
+        border: solid 1px #2b2e37;
+        background-color: #0f1219;
+      }
+    }
+
+    sl-details.custom-icons::part(summary-icon) {
+      /* Disable the expand/collapse animation */
+      rotate: none;
+    }
+
+    sl-color-picker {
+      box-sizing: border-box;
+    }
+
+    </style>
+  </head>
+  <body>
+    <div id="group">
+      <canvas id="noiseCanvas"></canvas>
+      <sl-details summary="Edit Particle Network" id='gradient-details' class="settings-panel custom-icons" open>
+        <sl-icon name="plus-square" slot="expand-icon"></sl-icon>
+        <sl-icon name="dash-square" slot="collapse-icon"></sl-icon>
+        <div class="setting-group color-picker">
+          <sl-color-picker format="hex" id="color1" class="colorInput" label="Color 1" size="small" value="#ff5e54" no-format-toggle="true"></sl-color-picker>
+          <span>Color 1</span>
+        </div>
+        <div class="setting-group range">
+          <sl-range id="multiplier" label="Particle Mult" min="0.1" max="3" value="1" step="0.1">Multipier</sl-range>
+        </div>
+        <div class="setting-group range">
+          <sl-range id="distance" label="ConnectionDistance" min="0.1" max="2" value="1" step="0.1">Distance</sl-range>
+        </div>
+        <div class="buttons">
+          <sl-button id="saveAppSource" size="small" variant="primary" class="homepage-element"><sl-icon slot="prefix" name="floppy"></sl-icon>Save</sl-button>
+          <sl-button id="addAppSource" size="small" variant="neutral" class="homepage-element" outline><sl-icon slot="prefix" name="plus-square"></sl-icon> New Source</sl-button>
+    
+        </div>
+        
+      </sl-details>
+    </div>
+    
+  </body>
+</html>
