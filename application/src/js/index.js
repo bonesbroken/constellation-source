@@ -1,4 +1,4 @@
-import {drawParticleNetwork} from './utils.js';
+import {drawConstellation} from './utils.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const query = location.search.substr(1);
@@ -8,13 +8,13 @@ document.addEventListener('DOMContentLoaded', () => {
           const item = part.split('=');
           if (item[0] === 'settings' && item[1]) {
               try {
-                  drawParticleNetwork(JSON.parse(decodeURIComponent(item[1])));
+                  drawConstellation(JSON.parse(decodeURIComponent(item[1])));
               } catch (err) {
                   console.error('Failed to parse settings from query string', err);
               }
           }
       });
     } else {
-      drawParticleNetwork();
+      drawConstellation();
     }
 });

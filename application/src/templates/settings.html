@@ -130,7 +130,7 @@
   <body>
     <div id="group">
       <canvas id="noiseCanvas"></canvas>
-      <sl-details summary="Edit Particle Network" id='gradient-details' class="settings-panel custom-icons" open>
+      <sl-details summary="Edit Constellation" id='constellation' class="settings-panel custom-icons" open>
         <sl-icon name="plus-square" slot="expand-icon"></sl-icon>
         <sl-icon name="dash-square" slot="collapse-icon"></sl-icon>
         <div class="setting-group color-picker">
@@ -141,7 +141,13 @@
           <sl-range id="multiplier" label="Particle Mult" min="0.1" max="3" value="1" step="0.1">Multipier</sl-range>
         </div>
         <div class="setting-group range">
-          <sl-range id="distance" label="ConnectionDistance" min="0.1" max="2" value="1" step="0.1">Distance</sl-range>
+          <sl-range id="size" label="Particle Size" min="1" max="10" value="1" step="0.1">Size</sl-range>
+        </div>
+        <div class="setting-group range">
+          <sl-range id="speed" label="Particle Speed" min="0.1" max="1" value="1" step="0.1">Speed</sl-range>
+        </div>
+        <div class="setting-group range">
+          <sl-range id="distance" label="Connection Distance" min="0.1" max="2" value="1" step="0.1">Distance</sl-range>
         </div>
         <div class="buttons">
           <sl-button id="saveAppSource" size="small" variant="primary" class="homepage-element"><sl-icon slot="prefix" name="floppy"></sl-icon>Save</sl-button>

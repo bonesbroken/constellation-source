@@ -1,7 +1,9 @@
-export const defaultParticleNetwork = {
+export const defaultConstellation = {
     "color1": "#ffffff",
     "multiplier": 1,
     "distance": 1,
+    "size": 1,
+    "speed": 1,
 };
 
 // Global variables to track the current animation
@@ -28,7 +30,7 @@ function hexToRgb(hex) {
     return { r, g, b };
 }
 
-export function drawParticleNetwork(settings) {
+export function drawConstellation(settings) {
     // CRITICAL: Clean up any existing animation first
     if (currentAnimationId) {
         cancelAnimationFrame(currentAnimationId);
@@ -53,22 +55,46 @@ export function drawParticleNetwork(settings) {
     const canvas = document.getElementById('noiseCanvas');
     if (!canvas) return;
     
+    // Check if canvas has parent with id "group" and set fixed dimensions
+    const container = canvas.parentElement;
+    if (container && container.id === 'group') {
+        canvas.width = 600;
+        canvas.height = 600;
+    } else {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    
     const ctx = canvas.getContext('2d');
     let width = canvas.width;
     let height = canvas.height;
-    const multiplier = settings && (settings.multiplier !== undefined && settings.multiplier !== null) ? settings.multiplier : defaultParticleNetwork.multiplier;
-    const distance = settings && (settings.distance !== undefined && settings.distance !== null) ? settings.distance : defaultParticleNetwork.distance;
-    const color1 = settings && (settings.color1 !== undefined && settings.color1 !== null) ? settings.color1 : defaultParticleNetwork.color1;
+    const multiplier = settings && (settings.multiplier !== undefined && settings.multiplier !== null) ? settings.multiplier : defaultConstellation.multiplier;
+    const distance = settings && (settings.distance !== undefined && settings.distance !== null) ? settings.distance : defaultConstellation.distance;
+    const color1 = settings && (settings.color1 !== undefined && settings.color1 !== null) ? settings.color1 : defaultConstellation.color1;
+    const size = settings && (settings.size !== undefined && settings.size !== null) ? settings.size : defaultConstellation.size;
+    const speed = settings && (settings.speed !== undefined && settings.speed !== null) ? settings.speed : defaultConstellation.speed;
+ 
     // Convert colors to RGB for alpha blending
+    console.log(multiplier, distance, color1, size, speed);
     const color1Rgb = hexToRgb(color1);
+
+    // Calculate size-based parameters with optional overrides
+    const particleSize = 1 * size;
 
     // Resize canvas to match container or window
     function resizeCanvas() {
         const container = canvas.parentElement;
         if (container) {
-            // Resize to container dimensions
-            canvas.width = container.clientWidth;
-            canvas.height = container.clientHeight;
+            // Check if parent has id "group" - if so, set fixed dimensions
+            if (container.id === 'group') {
+                console.log('Canvas parent has id "group", setting fixed 600x600 dimensions');
+                canvas.width = 600;
+                canvas.height = 600;
+            } else {
+                // Resize to container dimensions
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientHeight;
+            }
         } else {
             // Fallback: resize to window dimensions
             canvas.width = window.innerWidth;
@@ -84,22 +110,34 @@ export function drawParticleNetwork(settings) {
 
     // Update particle-related parameters when canvas resizes
     function updateParticleParameters() {
-        const newPointCount = Math.floor(width / 5) * multiplier;
-        const newMaxDistance = Math.floor(width / 5) * distance;
+        // Recalculate density-based parameters
+        const canvasArea = width * height;
+        const baseArea = 600 * 600;
+        const densityScale = Math.sqrt(canvasArea / baseArea);
         
-        // Adjust existing points to new canvas bounds
+        const baseParticleCount = 72;
+        const newPointCount = Math.floor(baseParticleCount * densityScale * multiplier);
+        
+        const baseDistance = 120;
+        const newMaxDistance = baseDistance * densityScale * distance;
+        
+        // Randomize positions of all existing points to new canvas bounds
         for (let p of points) {
-            p.x = Math.min(p.x, width);
-            p.y = Math.min(p.y, height);
+            p.x = Math.random() * width;
+            p.y = Math.random() * height;
+            // Optionally randomize velocities too
+            p.vx = (Math.random() - 0.5) * 1.5 * speed;
+            p.vy = (Math.random() - 0.5) * 1.5 * speed;
         }
+    
         
         // Add or remove points as needed
         while (points.length < newPointCount) {
             points.push({
                 x: Math.random() * width,
                 y: Math.random() * height,
-                vx: (Math.random() - 0.5) * 1.5,
-                vy: (Math.random() - 0.5) * 1.5
+                vx: (Math.random() - 0.5) * 1.5 * speed,
+                vy: (Math.random() - 0.5) * 1.5 * speed
             });
         }
         while (points.length > newPointCount) {
@@ -108,10 +146,28 @@ export function drawParticleNetwork(settings) {
         
         // Update MAX_DISTANCE for the drawing function
         MAX_DISTANCE = newMaxDistance;
+        
+        // CRITICAL: Recalculate spatial grid dimensions
+        gridSize = MAX_DISTANCE;
+        gridCols = Math.ceil(width / gridSize);
+        gridRows = Math.ceil(height / gridSize);
+        
+        // Update point count variables
+        POINT_COUNT = newPointCount;
     }
 
-    let POINT_COUNT = Math.floor(width / 5);
-    let MAX_DISTANCE = Math.floor(width / 5);
+    // Calculate density-based parameters that scale with canvas size
+    const canvasArea = width * height;
+    const baseArea = 600 * 600; // Reference area (600x600)
+    const densityScale = Math.sqrt(canvasArea / baseArea); // Scale factor based on area
+    
+    // Particle count based on density, not absolute size
+    const baseParticleCount = 72; // Base count for 600x600 canvas (width/5 * height/5 / 5)
+    let POINT_COUNT = Math.floor(baseParticleCount * densityScale * multiplier);
+    
+    // Connection distance scales with canvas size to maintain visual consistency
+    const baseDistance = 120; // Base distance for 600x600 canvas
+    let MAX_DISTANCE = baseDistance * densityScale * distance;
     let points = [];
     
     // Spatial partitioning grid
@@ -123,8 +179,17 @@ export function drawParticleNetwork(settings) {
     // Initialize points only if not already initialized, or force reinit
     function initializePoints() {
         points = [];
-        POINT_COUNT = Math.floor(width / 5) * multiplier;
-        MAX_DISTANCE = Math.floor(width / 5) * distance;
+        
+        // Recalculate density-based parameters
+        const canvasArea = width * height;
+        const baseArea = 600 * 600;
+        const densityScale = Math.sqrt(canvasArea / baseArea);
+        
+        const baseParticleCount = 72;
+        POINT_COUNT = Math.floor(baseParticleCount * densityScale * multiplier);
+        
+        const baseDistance = 120;
+        MAX_DISTANCE = baseDistance * densityScale * distance;
         
         // Initialize spatial grid
         gridSize = MAX_DISTANCE;
@@ -135,14 +200,20 @@ export function drawParticleNetwork(settings) {
             points.push({
                 x: Math.random() * width,
                 y: Math.random() * height,
-                vx: (Math.random() - 0.5) * 1.5,
-                vy: (Math.random() - 0.5) * 1.5
+                vx: (Math.random() - 0.5) * 1.5 * speed,
+                vy: (Math.random() - 0.5) * 1.5 * speed
             });
         }
     }
 
     // Create spatial grid for efficient neighbor finding
     function updateSpatialGrid() {
+        // Safety check for grid dimensions
+        if (gridSize <= 0 || gridCols <= 0 || gridRows <= 0) {
+            console.warn('Invalid grid dimensions, skipping spatial grid update');
+            return;
+        }
+        
         spatialGrid = new Array(gridCols * gridRows);
         for (let i = 0; i < spatialGrid.length; i++) {
             spatialGrid[i] = [];
@@ -163,6 +234,16 @@ export function drawParticleNetwork(settings) {
 
     // Get nearby points for a given point using spatial grid
     function getNearbyPoints(pointIndex) {
+        // Safety check for spatial grid
+        if (!spatialGrid || gridCols <= 0 || gridRows <= 0) {
+            // Fallback: return all other points (less efficient but working)
+            const allPoints = [];
+            for (let i = 0; i < points.length; i++) {
+                if (i !== pointIndex) allPoints.push(i);
+            }
+            return allPoints;
+        }
+        
         const point = points[pointIndex];
         const gridX = Math.floor(point.x / gridSize);
         const gridY = Math.floor(point.y / gridSize);
@@ -176,7 +257,9 @@ export function drawParticleNetwork(settings) {
                 
                 if (checkX >= 0 && checkX < gridCols && checkY >= 0 && checkY < gridRows) {
                     const gridIndex = checkY * gridCols + checkX;
-                    nearby.push(...spatialGrid[gridIndex]);
+                    if (gridIndex >= 0 && gridIndex < spatialGrid.length) {
+                        nearby.push(...spatialGrid[gridIndex]);
+                    }
                 }
             }
         }
@@ -190,7 +273,9 @@ export function drawParticleNetwork(settings) {
         // Debounce resize events to avoid excessive recalculation
         clearTimeout(handleResize.timeout);
         handleResize.timeout = setTimeout(() => {
+            console.log(`Canvas resized: ${canvas.width}x${canvas.height} -> ${window.innerWidth}x${window.innerHeight}`);
             resizeCanvas();
+            console.log(`Grid dimensions after resize: ${gridCols}x${gridRows}, gridSize: ${gridSize}`);
         }, 100);
     }
 
@@ -260,6 +345,7 @@ export function drawParticleNetwork(settings) {
         }
 
         // Batch draw all lines
+        ctx.lineWidth = particleSize;
         for (let line of linesToDraw) {
             ctx.strokeStyle = `rgba(${color1Rgb.r},${color1Rgb.g},${color1Rgb.b},${line.alpha})`;
             ctx.beginPath();
@@ -272,7 +358,7 @@ export function drawParticleNetwork(settings) {
         ctx.fillStyle = color1;
         for (let p of points) {
             ctx.beginPath();
-            ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+            ctx.arc(p.x, p.y, particleSize, 0, Math.PI * 2);
             ctx.fill();
         }
 
@@ -311,14 +397,14 @@ export function drawParticleNetwork(settings) {
 }
 
 // Function to update settings without recreating the entire animation
-export function updateParticleSettings(settings) {
+export function updateconstellationSettings(settings) {
     // If no animation is running, start it
     if (!currentAnimationId) {
-        return drawParticleNetwork(settings);
+        return drawConstellation(settings);
     }
     
     // Otherwise, just update the settings and let the existing animation continue
     // This would require refactoring to make settings globally accessible
     // For now, we'll restart with new settings
-    return drawParticleNetwork(settings);
+    return drawConstellation(settings);
 }

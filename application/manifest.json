@@ -1,6 +1,6 @@
 {
-    "version": "1.0.0",
-    "name": "Particle Network",
+    "version": "1.0.5",
+    "name": "Constellation",
     "buildPath": "dist/",
     "permissions": ["slobs.scenes-sources"],
     "supportedPlatforms": ["twitch", "youtube", "facebook"],
@@ -8,10 +8,10 @@
     "sources": [
       {
         "type": "browser_source",
-        "name": "Particle Network",
-        "id": "particle_network",
+        "name": "Constellation",
+        "id": "constellation",
         "about": {
-          "description": "Customizable plexus/particle network source.",
+          "description": "Customizable constellation source.",
           "bannerImage": "./images/app-icon.jpg"
         },
         "file": "index.html",

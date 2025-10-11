@@ -1,5 +1,5 @@
 import $ from "jquery";
-import { defaultParticleNetwork, drawParticleNetwork, updateParticleSettings } from './utils.js';
+import { defaultConstellation, drawConstellation, updateconstellationSettings } from './utils.js';
 import '@shoelace-style/shoelace/dist/themes/dark.css';
 import '@shoelace-style/shoelace/dist/components/button/button.js';
 import '@shoelace-style/shoelace/dist/components/icon/icon.js';
@@ -15,7 +15,7 @@ setBasePath('./shoelace');
 
 // streamlabs api variables
 let streamlabs, streamlabsOBS;
-let particleSettings = defaultParticleNetwork;
+let constellationSettings = defaultConstellation;
 let canAddSource = false;
 let existingSource;
 
@@ -30,8 +30,8 @@ async function loadShoelaceElements() {
 }
 
 $(function() {
-    updateUI(particleSettings);
-    drawParticleNetwork(particleSettings); // Initial setup
+    updateUI(constellationSettings);
+    drawConstellation(constellationSettings); // Initial setup
     loadShoelaceElements();
     initApp();
 });
@@ -57,21 +57,21 @@ async function initApp() {
 
                     if(!settings) {
                         console.log('New source, no settings');
-                        updateUI(particleSettings, 'existing');
+                        updateUI(constellationSettings, 'existing');
                         
                     } else {
                         console.log('Gradient source, update from stored settings');
-                        particleSettings = JSON.parse(settings);
-                        updateUI(particleSettings, 'existing');
-                        updateParticleSettings(particleSettings);
+                        constellationSettings = JSON.parse(settings);
+                        updateUI(constellationSettings, 'existing');
+                        updateconstellationSettings(constellationSettings);
                     }
                 });  
             } else {
                 existingSource = null;
                 // Accesses via side nav, load saved settings
                 console.log('Accessed via side nav');
-                updateUI(particleSettings, 'new');
-                updateParticleSettings(particleSettings);
+                updateUI(constellationSettings, 'new');
+                updateconstellationSettings(constellationSettings);
             }
         });
     });
@@ -89,6 +89,10 @@ function updateUI(settings, newSource) {
     $('#multiplier').val(Number(settings["multiplier"]));
     $('#distance').attr('label', `Distance: ${Number(settings["distance"])}`);
     $('#distance').val(Number(settings["distance"]));
+    $('#size').attr('label', `Size: ${Number(settings["size"])}`);
+    $('#size').val(Number(settings["size"]));
+    $('#speed').attr('label', `Speed: ${Number(settings["speed"] || 1)}`);
+    $('#speed').val(Number(settings["speed"] || 1));
 
     if(newSource === 'new') {
         $('#saveAppSource').hide();
@@ -101,7 +105,9 @@ function updateUI(settings, newSource) {
 // Map of field IDs to their display labels
 const fieldLabels = {
     'multiplier': 'Multiplier',
-    'distance': 'Distance'
+    'distance': 'Distance',
+    'size': 'Size',
+    'speed': 'Speed'
 };
 
 $("sl-range").off('sl-change');
@@ -113,8 +119,8 @@ $("sl-range").on('sl-change', event => {
     const fieldId = $(event.target).attr('id');
     const fieldLabel = fieldLabels[fieldId] || fieldId; // fallback to ID if no label found
     $(event.target).attr('label', `${fieldLabel}: ${numeric}`);
-    particleSettings[fieldId] = numeric;
-    updateParticleSettings(particleSettings);
+    constellationSettings[fieldId] = numeric;
+    updateconstellationSettings(constellationSettings);
 });
 
 $('.colorInput').off('sl-change');
@@ -126,8 +132,8 @@ $('.colorInput').on('sl-change', event => {
     if ($nextSpan.length) $nextSpan.text(nearestColorName(val));
 
     const id = $(event.target).attr('id');
-    particleSettings[id] = val;
-    updateParticleSettings(particleSettings);
+    constellationSettings[id] = val;
+    updateconstellationSettings(constellationSettings);
 
 });
 
@@ -180,7 +186,7 @@ $("#saveAppSource").on('click', () => {
 
     if(existingSource) {
         //streamlabsOBS.v1.Sources.updateSource({id: existingSource, name: title});
-        streamlabsOBS.v1.Sources.setAppSourceSettings(existingSource, JSON.stringify(particleSettings));
+        streamlabsOBS.v1.Sources.setAppSourceSettings(existingSource, JSON.stringify(constellationSettings));
         streamlabsOBS.v1.App.navigate('Editor');
         existingSource = null;
     }
@@ -190,8 +196,8 @@ $("#saveAppSource").on('click', () => {
 $("#addAppSource").on('click', () => { 
     if(!canAddSource) return;
     streamlabsOBS.v1.Scenes.getActiveScene().then(scene => {
-        streamlabsOBS.v1.Sources.createAppSource('Particle Network', 'particle_network').then(source => {
-            streamlabsOBS.v1.Sources.setAppSourceSettings(source.id, JSON.stringify(particleSettings));
+        streamlabsOBS.v1.Sources.createAppSource('Constellation', 'constellation').then(source => {
+            streamlabsOBS.v1.Sources.setAppSourceSettings(source.id, JSON.stringify(constellationSettings));
             streamlabsOBS.v1.Scenes.createSceneItem(scene.id, source.id);
             streamlabsOBS.v1.App.navigate('Editor');
         });
